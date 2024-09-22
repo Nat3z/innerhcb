@@ -31,7 +31,7 @@ export default class HCBAccount {
   }
 
   async pre() {
-
+    this.hasPre = true;
     try {
       const response = await this.request("https://hcb.hackclub.com/");
       if (!response) {
@@ -45,7 +45,6 @@ export default class HCBAccount {
       for (let cookie of cookies) {
         this.cookieHeader += cookie.split(';')[0] + ";";
       }
-      this.hasPre = true;
     } catch (error) {
       throw new Error("Failed to perform pre() task. HCB will not work without this.");
     }
