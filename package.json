@@ -1,0 +1,40 @@
+{
+  "name": "innerhcb",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nat3z",
+    "email": "me@nat3z.com",
+    "url": "https://nat3z.com/"
+  },
+  "module": "src/hcb.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./build/hcb.d.cts",
+        "default": "./build/hcb.mjs"
+      },
+      "require": {
+        "types": "./build/hcb.d.cts",
+        "default": "./build/hcb.cjs"
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jsdom": "^21.1.7",
+    "tsup": "^8.3.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "bun run --watch src/app.ts",
+    "bundle": "tsup --config tsup.config.js",
+    "release": "bun run bundle && npm publish"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "jsdom": "^25.0.0",
+    "zod": "^3.23.8"
+  }
+}
