@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 import { ZodDonation, ZodDonationDetails, ZodHCBOrganization, ZodTransaction } from "./zobjects";
-import { getAuthenticityToken, scrapeHCBDonation, scrapeHCBDonationPage, scrapeHCBTransactionsPage } from "./scraper";
+import { checkAuthorizationScrape, getAuthenticityToken, scrapeHCBDonation, scrapeHCBDonationPage, scrapeHCBTransactionsPage } from "./scraper";
 
 export default class HCBAccount {
   private cookieHeader: string;
@@ -53,7 +53,7 @@ export default class HCBAccount {
   async getTransactions(id: string) {
     const response = await this.request("https://hcb.hackclub.com/" + id + "");
     if (!response) {
-      
+
       return;
     }
 
@@ -62,7 +62,7 @@ export default class HCBAccount {
       let transactionsParsed = ZodTransaction.array().parse(transactionsUnparsed);
       return transactionsParsed;
     } catch (error) {
-      
+
       console.error(error);
     }
   }
@@ -70,16 +70,16 @@ export default class HCBAccount {
   async getDonations(id: string) {
     const response = await this.request("https://hcb.hackclub.com/" + id + "/donations");
     if (!response) {
-      console.error("Failed to get donations for " + id); 
+      console.error("Failed to get donations for " + id);
       return;
     }
 
     try {
-      const donationsUnparsed = scrapeHCBDonationPage(response.data); 
+      const donationsUnparsed = scrapeHCBDonationPage(response.data);
       let donationsParsed = ZodDonation.array().parse(donationsUnparsed);
       return donationsParsed;
     } catch (error) {
-      console.error(error); 
+      console.error(error);
     }
   }
 
@@ -93,7 +93,7 @@ export default class HCBAccount {
     try {
       const donationUnparsed = await scrapeHCBDonation(response.data);
       if (!donationUnparsed) {
-        console.error("Failed to get donation details for " + url); 
+        console.error("Failed to get donation details for " + url);
         return;
       }
       const donation = ZodDonationDetails.parse(donationUnparsed);
@@ -133,20 +133,20 @@ export default class HCBAccount {
           'X-CSRF-Token': authenticityToken
         },
         data: formData.toString()
-      }) 
+      })
       if (response.status === 200) {
-        
+
         return true
       }
       else {
-        
+
       }
     } catch (error) {
       console.error(error);
     }
 
     return false;
-    
+
   }
 
   async editTransactionMemo(organizationId: string, transactionId: string, memo: string) {
@@ -181,11 +181,24 @@ export default class HCBAccount {
       if (response.status === 200) {
         return true
       }
-      else {
-        
-      }
     } catch (error) {
       console.error(error);
+    }
+
+    return false;
+  }
+
+  async isAuthorized(org: string) {
+    const response = await this.request("https://hcb.hackclub.com/" + org + "/settings");
+    if (!response) {
+      return false;
+    }
+
+    try {
+      const parsedHTML = response.data;
+      return checkAuthorizationScrape(parsedHTML);
+
+    } catch {
     }
 
     return false;

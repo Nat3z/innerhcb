@@ -139,3 +139,14 @@ export function scrapeHCBTransactionsPage(html: string) {
   });
   return transactions;
 }
+
+export function checkAuthorizationScrape(htmlContent: string) {
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+  const titleElement = document.querySelector('title');
+  if (!titleElement) {
+    return false;
+  }
+  titleElement.textContent = titleElement.textContent!!.replace(/\s+/g, ' ').trim();
+  return titleElement.textContent.includes('Settings – HCB');
+}
