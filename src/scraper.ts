@@ -4,43 +4,52 @@ export function scrapeHCBDonation(html: string) {
   const dom = new JSDOM(html);
   const document = dom.window.document;
 
-  // Step 3: Extract donation details
-  const donationTimeElement = document.querySelector('section.card__banner time');
+  // Extract donation details
+  const donationTimeElement = document.querySelector('time[datetime]');
   const donationTime = donationTimeElement ? donationTimeElement.getAttribute('datetime') : null;
 
   const donorEmailElement = document.querySelector('section.details a[href^="mailto:"]');
   if (!donorEmailElement || !donorEmailElement.textContent) {
     return;
   }
-  const donorEmail = donorEmailElement ? donorEmailElement.textContent.trim() : null;
+  const donorEmail = donorEmailElement.textContent.trim();
 
-  const transactionMemoElement = document.querySelector('section.details p:nth-of-type(2)');
-  if (!transactionMemoElement || !transactionMemoElement.textContent) {
-    return;
-  }
-  let transactionMemo = transactionMemoElement ? transactionMemoElement.textContent : null;
-  if (transactionMemo) {
-    transactionMemo = transactionMemo.replace(/\s+/g, ' ').replace('Transaction memo', "").trim();
-  }
-
-  const transactionMessageElement = document.querySelector('section.details p:nth-of-type(4)');
-  let transactionMessage = transactionMessageElement ? transactionMessageElement.textContent : null;
-  if (transactionMessage) {
-    transactionMessage = transactionMessage.replace(/\s+/g, ' ').replace("Message", "").trim();
-  }
-
-  const donationAmountElement = document.querySelector('section.details p:nth-of-type(3)');
-  let donationAmountRaw = donationAmountElement ? donationAmountElement.textContent : null;
+  // Find Amount section
+  const amountElements = document.querySelectorAll('section.details p');
   let donationAmountCents = 0;
-  // donationAmount would be "+$10.00" 
-  if (donationAmountRaw) {
-    donationAmountCents = parseInt(donationAmountRaw.replace(/\D/g, ''));
+  let transactionMessage = null;
+
+  for (const element of amountElements) {
+    const strongElement = element.querySelector('strong');
+    if (!strongElement) continue;
+    
+    const label = strongElement.textContent?.trim();
+    
+    if (label === 'Amount') {
+      const amountText = element.textContent?.replace('Amount', '').trim();
+      if (amountText) {
+        // Convert "+$1.08" to cents (108)
+        const match = amountText.match(/[\+\-]?\$?(\d+)\.(\d{2})/);
+        if (match) {
+          const dollars = parseInt(match[1]);
+          const cents = parseInt(match[2]);
+          donationAmountCents = dollars * 100 + cents;
+          // Handle negative amounts
+          if (amountText.startsWith('-')) {
+            donationAmountCents = -donationAmountCents;
+          }
+        }
+      }
+    } else if (label === 'Message') {
+      transactionMessage = element.textContent?.replace('Message', '').trim() || null;
+    }
   }
-  // Step 4: Format the data into JSON
+
+  // Format the data into JSON
   return {
     donation_time: donationTime,
     donor_email: donorEmail,
-    transaction_memo: transactionMemo,
+    transaction_memo: null, // Not present in donation details page
     transaction_message: transactionMessage,
     amount: donationAmountCents
   };
@@ -100,6 +109,7 @@ export function scrapeHCBDonationPage(html: string) {
 export function scrapeHCBTransactionsPage(html: string) {
   // Step 3: Extract transaction information
   const dom = new JSDOM(html);
+  console.log(html);
   const transactions: any[] = [];
   const transactionRows = dom.window.document.querySelectorAll('tbody[data-behavior=transactions] tr');
 
@@ -112,6 +122,7 @@ export function scrapeHCBTransactionsPage(html: string) {
     if (memo) {
       memo = memo.replace(/\s+/g, ' ').replace("Pending", "").trim();
     }
+
 
     const amountElement = row.querySelector('td.nowrap') as HTMLElement;
     const amountText = amountElement ? amountElement.textContent!!.trim() : null;

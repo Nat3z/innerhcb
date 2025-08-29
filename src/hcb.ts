@@ -51,9 +51,8 @@ export default class HCBAccount {
   }
 
   async getTransactions(id: string) {
-    const response = await this.request("https://hcb.hackclub.com/" + id + "");
+    const response = await this.request("https://hcb.hackclub.com/" + id + "/ledger");
     if (!response) {
-
       return;
     }
 

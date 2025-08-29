@@ -17,10 +17,10 @@ export const ZodHCBOrganization = z.object({
   transparent: z.boolean(),
   demo_mode: z.boolean(),
   logo: z.string(),
-  donation_header: z.string(),
-  background_image: z.string(),
-  public_message: z.string(),
-  donation_link: z.string(),
+  donation_header: z.string().nullish(),
+  background_image: z.string().nullish(),
+  public_message: z.string().nullish(),
+  donation_link: z.string().nullish(),
   balances: z.object({
     balance_cents: z.number(),
     fee_balance_cents: z.number(),
@@ -38,10 +38,10 @@ export const ZodHCBOrganization = z.object({
 });
 
 export const ZodDonationDetails = z.object({
-  donation_time: z.string().optional(),
+  donation_time: z.string().nullish(),
   donor_email: z.string().email(),
-  transaction_memo: z.string(),
-  transaction_message: z.string(),
+  transaction_memo: z.string().nullish(),
+  transaction_message: z.string().nullish(),
   amount: z.number(),
 });
 
