@@ -4,6 +4,7 @@ export const ZodDonation = z.object({
   donor_name: z.string(),
   private_donor: z.boolean(),
   details_url: z.string().url().nullish(),
+  donation_amount: z.number(),
 });
 
 export const ZodHCBOrganization = z.object({

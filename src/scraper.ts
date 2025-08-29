@@ -72,7 +72,12 @@ export function scrapeHCBDonationPage(html: string) {
   const document = dom.window.document;
 
   // Step 3: Extract donation information
-  const donations: any[] = [];
+  const donations: {
+    donor_name: string;
+    private_donor: boolean;
+    details_url: string;
+    donation_amount: number;
+  }[] = [];
   const rows = document.querySelector('article.table-container')!!.querySelectorAll('tr');
 
   rows.forEach(row => {
@@ -93,11 +98,19 @@ export function scrapeHCBDonationPage(html: string) {
     const detailsUrlElement = cells[4].querySelector('a');
     const detailsUrl = detailsUrlElement ? detailsUrlElement.getAttribute('href') : null;
 
+    const amountElement = cells[3];
+    const amountText = amountElement ? amountElement.textContent!!.trim() : null;
+    let amount = 0;
+    if (amountText) {
+      amount = parseInt(amountText.replace(/[^\d-]+/g, ''));
+    }
+
     if (donorName) {
       const donation = {
         donor_name: donorName,
         private_donor: privateDonor,
-        details_url: detailsUrl
+        details_url: detailsUrl!!,
+        donation_amount: amount
       };
       donations.push(donation);
     }
